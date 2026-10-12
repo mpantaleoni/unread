@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unread</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Unread">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#f7f1e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121722" media="(prefers-color-scheme: dark)">
+<style>
+  :root {
+    --bg: #f7f1e6;
+    --card: #fffaf2;
+    --text: #2a2420;
+    --muted: #7a6e62;
+    --line: #eadfcd;
+    --accent: #d97a1e;
+    --accent-ink: #ffffff;
+    --lake: #2f6f6a;
+    --bubble: #efe6d6;
+    --mine: #d97a1e;
+    --shadow: 0 1px 2px rgba(60, 40, 20, .08), 0 6px 20px rgba(60, 40, 20, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121722;
+      --card: #1b2232;
+      --text: #f2ece2;
+      --muted: #9aa3b5;
+      --line: #2a3346;
+      --accent: #f0a24a;
+      --accent-ink: #1a1206;
+      --lake: #6fbfb6;
+      --bubble: #242c3e;
+      --mine: #f0a24a;
+      --shadow: none;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  #app {
+    max-width: 520px; margin: 0 auto; min-height: 100%;
+    display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px, env(safe-area-inset-left));
+  }
+
+  /* ---------- title ---------- */
+  .title-screen { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 40px 0; gap: 14px; }
+  .title-art { font-size: 64px; line-height: 1; }
+  .title-screen h1 { font-size: 46px; margin: 0; letter-spacing: -1.5px; font-weight: 800; }
+  .title-screen h1 .dot { color: var(--accent); }
+  .tagline { color: var(--muted); margin: 0 0 18px; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .btn {
+    border: 1px solid var(--line); background: var(--card); border-radius: 14px;
+    padding: 14px 18px; font-weight: 600; box-shadow: var(--shadow); text-align: center;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .langs { display: flex; justify-content: center; gap: 6px; margin-top: 18px; flex-wrap: wrap; }
+  .langs button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--muted); }
+  .langs button.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .langs button:disabled { opacity: .45; cursor: default; }
+  .fine { font-size: 13px; color: var(--muted); }
+  .linkish { background: none; border: 0; color: var(--muted); font-size: 13px; text-decoration: underline; padding: 8px; }
+
+  /* ---------- who are you ---------- */
+  .who { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18px; padding: 32px 0; }
+  .who h2 { text-align: center; font-size: 28px; margin: 0; }
+  .heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hero-card {
+    border: 2px solid var(--line); background: var(--card); border-radius: 18px; padding: 18px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; box-shadow: var(--shadow);
+  }
+  .hero-card .big { font-size: 44px; line-height: 1.1; }
+  .hero-card b { font-size: 20px; }
+  .hero-card span { font-size: 13px; color: var(--muted); line-height: 1.35; }
+  .hero-card.on { border-color: var(--accent); }
+  .avatars { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .avatars button { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); font-size: 26px; }
+  .avatars button.on { border-color: var(--accent); }
+  .label { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: -8px; }
+
+  /* ---------- game ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 2; background: var(--bg);
+    display: flex; align-items: center; gap: 8px; padding: 12px 0 10px; border-bottom: 1px solid var(--line);
+  }
+  .topbar .place { flex: 1; min-width: 0; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 14px; white-space: nowrap; }
+  .icon-btn .n { font-weight: 700; color: var(--accent); }
+  .scene { flex: 1; padding: 20px 0 8px; }
+  .art { font-size: 52px; text-align: center; margin-bottom: 10px; line-height: 1.1; }
+  .line { margin: 0 0 14px; }
+  .reveal { opacity: 0; transform: translateY(6px); transition: opacity .35s, transform .35s; }
+  .reveal.in { opacity: 1; transform: none; }
+  .say { display: flex; gap: 10px; align-items: flex-start; }
+  .face { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--bubble); display: grid; place-items: center; font-size: 20px; }
+  .say .body { background: var(--card); border: 1px solid var(--line); border-radius: 4px 16px 16px 16px; padding: 8px 12px; box-shadow: var(--shadow); min-width: 0; }
+  .say .who { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; display: block; padding: 0; gap: 0; }
+  .say.me { flex-direction: row-reverse; }
+  .say.me .body { border-radius: 16px 4px 16px 16px; }
+  .choices { display: flex; flex-direction: column; gap: 10px; padding: 8px 0 20px; }
+  .choices .btn { text-align: left; }
+  .choices .btn.primary { text-align: center; }
+  .skip { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 8px; }
+
+  /* chat */
+  .phone { background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; box-shadow: var(--shadow); }
+  .phone-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 15px; }
+  .phone-head small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .thread { padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+  .msg { display: flex; gap: 8px; align-items: flex-end; max-width: 85%; }
+  .msg .av { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--bubble); display: grid; place-items: center; font-size: 15px; }
+  .msg .bub { background: var(--bubble); padding: 7px 12px; border-radius: 18px 18px 18px 4px; font-size: 16px; overflow-wrap: anywhere; }
+  .msg .nm { display: block; font-size: 11px; font-weight: 700; color: var(--muted); }
+  .msg.unknown .nm { color: var(--accent); }
+  .msg.mine { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.mine .bub { background: var(--mine); color: var(--accent-ink); border-radius: 18px 18px 4px 18px; }
+  .msg.mine .nm { display: none; }
+  .sys { align-self: center; font-size: 12px; color: var(--muted); background: var(--bg); padding: 2px 10px; border-radius: 999px; }
+  .dots span { display: inline-block; width: 6px; height: 6px; margin: 0 1px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+  .dots span:nth-child(2) { animation-delay: .15s; } .dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
+
+  /* hub */
+  .slots { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .slots b { font-size: 20px; letter-spacing: 4px; }
+  .places { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .place-btn { border: 1px solid var(--line); background: var(--card); border-radius: 18px; padding: 18px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 600; box-shadow: var(--shadow); }
+  .place-btn .i { font-size: 36px; line-height: 1.1; }
+  .place-btn small { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .place-btn:disabled { opacity: .5; cursor: default; }
+
+  /* ending */
+  .badge { text-align: center; margin: 4px 0 16px; }
+  .badge .k { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .badge h2 { margin: 2px 0 0; font-size: 28px; }
+
+  /* sheets */
+  .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+  .sheet {
+    background: var(--bg); width: 100%; max-width: 520px; max-height: 85vh; overflow: auto;
+    border-radius: 22px 22px 0 0; padding: 20px max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  .sheet h3 { margin: 0 0 12px; font-size: 22px; }
+  .clue { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .clue .i { font-size: 26px; flex: none; }
+  .clue b { display: block; }
+  .clue span { font-size: 15px; color: var(--muted); }
+  .grid-ends { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .end-card { border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 14px 8px; text-align: center; font-size: 14px; font-weight: 600; }
+  .end-card .i { font-size: 30px; display: block; }
+  .end-card.locked { color: var(--muted); font-weight: 400; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+    z-index: 20; animation: toast 2.6s forwards; white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis;
+  }
+  @keyframes toast { 0% { opacity: 0; transform: translate(-50%, 10px); } 10%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { transition: none; }
+    .toast { animation-duration: 3s; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="story/en.js"></script>
+<script>
+const LANGS = [
+  { id: 'en', label: 'English' },
+  { id: 'it', label: 'Italiano' },
+  { id: 'de', label: 'Deutsch' },
+  { id: 'fr', label: 'Français' }
+];
+const SAVE_KEY = 'unread-v1-save', ENDS_KEY = 'unread-v1-endings', LANG_KEY = 'unread-v1-lang';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let lang = store.get(LANG_KEY, 'en');
+if (!window.STORY[lang]) lang = 'en';
+let S = window.STORY[lang];
+let G = store.get(SAVE_KEY, null);   // current game state
+let found = store.get(ENDS_KEY, []); // unlocked ending ids
+let run = 0;                         // bumps on every render, cancels stale animations
+
+const app = document.getElementById('app');
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k] ?? '');
+
+// ---------- text & state helpers ----------
+const sisId = () => G.hero === 'margot' ? 'anouk' : 'margot';
+const who = id => id === 'hero' ? G.hero : id === 'sis' ? sisId() : id;
+const nameOf = id => S.characters[who(id)].name;
+const faceOf = id => who(id) === G.hero ? G.avatar : S.characters[who(id)].emoji;
+function tx(v) {
+  if (v == null) return '';
+  if (typeof v === 'object') v = G.hero === 'margot' ? v.m : v.a;
+  return v.replace(/\{hero\}/g, nameOf('hero')).replace(/\{sis\}/g, nameOf('sis'));
+}
+const keyCount = () => S.keyClues.filter(c => G.clues.includes(c)).length;
+const secretAll = () => S.secretClues.every(c => G.clues.includes(c));
+
+function check(c) {
+  if (!c) return true;
+  if (c.not && check(c.not)) return false;
+  for (const k in c.min || {}) if (G.stats[k] < c.min[k]) return false;
+  for (const k in c.max || {}) if (G.stats[k] > c.max[k]) return false;
+  for (const k of [].concat(c.clue || [])) if (!G.clues.includes(k)) return false;
+  if (c.keyClues && keyCount() < c.keyClues) return false;
+  return true;
+}
+function apply(fx) {
+  if (!fx) return;
+  for (const k of ['courage', 'kindness', 'bond', 'julie']) if (fx[k]) G.stats[k] += fx[k];
+  for (const c of [].concat(fx.clue || [])) {
+    if (!G.clues.includes(c)) { G.clues.push(c); toast(fmt(S.ui.clueAdded, { clue: S.clues[c].icon + ' ' + S.clues[c].name })); }
+  }
+}
+const resolveGo = g => typeof g === 'string' ? g : g.find(o => check(o.if)).go;
+
+function newGame(hero, avatar) {
+  G = { hero, avatar, scene: null, stats: { courage: 0, kindness: 0, bond: 0, julie: 0 }, clues: [], visited: [], flags: [], chat: [] };
+  goTo(S.start);
+}
+function save() { store.set(SAVE_KEY, G); }
+
+function goTo(id) {
+  let sc = S.scenes[id];
+  if (sc.type === 'hub') {
+    if (G.visited.length >= sc.slots) return goTo(sc.after);
+    if (sc.interrupt && G.visited.length >= sc.interrupt.after && !G.flags.includes('interrupt')) {
+      G.flags.push('interrupt');
+      return goTo(sc.interrupt.go);
+    }
+  }
+  // A run of consecutive chat scenes shares one visible thread.
+  const prev = S.scenes[G.scene];
+  if (sc.type !== 'chat') G.chat = [];
+  else {
+    if (!prev || prev.type !== 'chat') G.chat = [];
+    G.chat.push(...sc.msgs);
+  }
+  G.scene = id;
+  apply(sc.fx);
+  if (sc.type === 'ending' && !found.includes(sc.ending)) { found.push(sc.ending); store.set(ENDS_KEY, found); }
+  save();
+  render(true);
+}
+
+// ---------- screens ----------
+function render(animate) {
+  run++;
+  app.innerHTML = '';
+  window.scrollTo(0, 0);
+  if (!G || !G.scene) return renderTitle();
+  const sc = S.scenes[G.scene];
+  app.append(topbar(sc));
+  const box = el('div', 'scene');
+  app.append(box);
+  ({ chat: renderChat, hub: renderHub, ending: renderEnding }[sc.type] || renderStory)(sc, box, animate);
+}
+
+function renderTitle() {
+  const t = el('div', 'title-screen');
+  t.append(el('div', 'title-art', '🏕️'));
+  t.append(el('h1', '', esc(S.ui.title) + '<span class="dot">.</span>'));
+  t.append(el('p', 'tagline', esc(S.ui.tagline)));
+  const s = el('div', 'stack');
+  const saved = store.get(SAVE_KEY, null);
+  if (saved && saved.scene && S.scenes[saved.scene]?.type !== 'ending') {
+    const c = el('button', 'btn primary', esc(S.ui.continue));
+    c.onclick = () => { G = saved; render(false); };
+    s.append(c);
+  }
+  const n = el('button', 'btn' + (s.children.length ? '' : ' primary'), esc(S.ui.newGame));
+  n.onclick = renderWho;
+  s.append(n);
+  const e = el('button', 'btn', '🏆 ' + esc(S.ui.endings) + ' · ' + esc(fmt(S.ui.endingsFound, { n: found.length, total: Object.keys(S.endings).length })));
+  e.onclick = showEndings;
+  s.append(e);
+  t.append(s);
+
+  const langs = el('div', 'langs');
+  for (const l of LANGS) {
+    const b = el('button', l.id === lang ? 'on' : '', esc(l.label));
+    if (!window.STORY[l.id]) { b.disabled = true; b.title = S.ui.soon; }
+    b.onclick = () => { lang = l.id; S = window.STORY[lang]; store.set(LANG_KEY, lang); document.documentElement.lang = lang; render(); };
+    langs.append(b);
+  }
+  t.append(langs);
+  if (LANGS.some(l => !window.STORY[l.id])) t.append(el('div', 'fine', esc(S.ui.soon) + ': ' + LANGS.filter(l => !window.STORY[l.id]).map(l => l.label).join(', ')));
+  app.append(t);
+}
+
+function renderWho() {
+  run++;
+  app.innerHTML = '';
+  let hero = null, avatar = null;
+  const w = el('div', 'who');
+  w.append(el('h2', '', esc(S.ui.whoAreYou)));
+  const hs = el('div', 'heroes');
+  const avWrap = el('div', 'stack');
+  const go = el('button', 'btn primary', esc(S.ui.start));
+  go.disabled = true;
+  for (const id of ['margot', 'anouk']) {
+    const c = el('button', 'hero-card', `<div class="big">${S.characters[id].emoji}</div><b>${esc(S.characters[id].name)}</b><span>${esc(S.heroes[id].blurb)}</span>`);
+    c.onclick = () => {
+      hero = id; avatar = avatar || S.characters[id].emoji;
+      hs.querySelectorAll('.hero-card').forEach(x => x.classList.toggle('on', x === c));
+      drawAvatars(); go.disabled = false;
+    };
+    hs.append(c);
+  }
+  function drawAvatars() {
+    avWrap.innerHTML = '';
+    avWrap.append(el('div', 'label', esc(S.ui.pickAvatar)));
+    const row = el('div', 'avatars');
+    for (const a of S.avatars) {
+      const b = el('button', a === avatar ? 'on' : '', a);
+      b.setAttribute('aria-label', a);
+      b.onclick = () => { avatar = a; drawAvatars(); };
+      row.append(b);
+    }
+    avWrap.append(row);
+  }
+  go.onclick = () => newGame(hero, avatar);
+  const back = el('button', 'linkish', '← ' + esc(S.ui.backToTitle));
+  back.onclick = () => render();
+  w.append(hs, avWrap, go, back);
+  app.append(w);
+}
+
+function topbar(sc) {
+  const bar = el('div', 'topbar');
+  const menu = el('button', 'icon-btn', '☰');
+  menu.setAttribute('aria-label', S.ui.menu);
+  menu.onclick = () => { G = null; render(); };
+  bar.append(menu, el('div', 'place', esc(sc.place || '')));
+  const nb = el('button', 'icon-btn', `📓 <span class="n">${G.clues.length}</span>`);
+  nb.setAttribute('aria-label', S.ui.notebook);
+  nb.onclick = showNotebook;
+  bar.append(nb);
+  return bar;
+}
+
+function lineEl(l) {
+  if (l && typeof l === 'object' && !Array.isArray(l) && 'line' in l) return check(l.if) ? lineEl(l.line) : null;
+  if (Array.isArray(l)) {
+    const me = who(l[0]) === G.hero;
+    const d = el('div', 'line say' + (me ? ' me' : ''));
+    d.append(el('div', 'face', faceOf(l[0])));
+    d.append(el('div', 'body', `<span class="who">${esc(nameOf(l[0]))}</span>${esc(tx(l[1]))}`));
+    return d;
+  }
+  return el('p', 'line', esc(tx(l)));
+}
+
+async function revealAll(box, items, animate) {
+  const my = run;
+  if (!animate || reduceMotion) { items.forEach(i => i.classList.add('in')); return; }
+  let fast = false;
+  const hint = el('div', 'skip', esc(S.ui.tapToSkip));
+  box.append(hint);
+  const onTap = () => { fast = true; };
+  app.addEventListener('click', onTap, { once: true });
+  for (const i of items) {
+    if (my !== run) return;
+    i.classList.add('in');
+    if (!fast) await sleep(Math.min(1400, 450 + i.textContent.length * 12));
+  }
+  app.removeEventListener('click', onTap);
+  hint.remove();
+}
+
+function choicesEl(sc, onPick) {
+  const wrap = el('div', 'choices');
+  const list = (sc.choices || []).filter(c => check(c.if));
+  if (!list.length && sc.go) list.push({ t: S.ui.next, go: sc.go, primary: true });
+  for (const c of list) {
+    const b = el('button', 'btn' + (c.primary ? ' primary' : ''), esc(c.primary ? c.t : tx(c.t)));
+    b.onclick = e => { e.stopPropagation(); onPick ? onPick(c) : pick(c); };
+    wrap.append(b);
+  }
+  return wrap;
+}
+function pick(c) { apply(c.fx); goTo(resolveGo(c.go)); }
+
+async function renderStory(sc, box, animate) {
+  const my = run;
+  box.append(el('div', 'art', sc.art || ''));
+  const items = sc.lines.map(lineEl).filter(Boolean);
+  items.forEach(i => { i.classList.add('reveal'); box.append(i); });
+  await revealAll(box, items, animate);
+  if (my === run) box.append(choicesEl(sc));
+}
+
+function chatMsgEl(m) {
+  const [from, text] = m;
+  if (from === 'system') return el('div', 'sys', esc(tx(text)));
+  const mine = who(from) === G.hero;
+  const d = el('div', 'msg' + (mine ? ' mine' : '') + (from === 'unknown' ? ' unknown' : ''));
+  d.append(el('div', 'av', faceOf(from)));
+  d.append(el('div', 'bub', `<span class="nm">${esc(nameOf(from))}</span>${esc(tx(text))}`));
+  return d;
+}
+
+async function renderChat(sc, box, animate) {
+  const my = run;
+  const phone = el('div', 'phone');
+  phone.append(el('div', 'phone-head', `<span style="font-size:22px">💬</span><div>${esc(S.chatName)}<small>${esc(sc.place || '')}</small></div>`));
+  const thread = el('div', 'thread');
+  phone.append(thread);
+  box.append(phone);
+  // This scene's own messages are the tail of G.chat; earlier ones show instantly.
+  const fresh = animate ? G.chat.slice(-sc.msgs.length) : [];
+  G.chat.slice(0, G.chat.length - fresh.length).forEach(m => thread.append(chatMsgEl(m)));
+
+  let fast = reduceMotion;
+  const onTap = () => { fast = true; };
+  app.addEventListener('click', onTap);
+  for (const m of fresh) {
+    if (my !== run) { app.removeEventListener('click', onTap); return; }
+    if (!fast && m[0] !== 'system' && who(m[0]) !== G.hero) {
+      const typing = el('div', 'msg', `<div class="av">${faceOf(m[0])}</div><div class="bub dots"><span></span><span></span><span></span></div>`);
+      thread.append(typing);
+      await sleep(Math.min(1500, 600 + tx(m[1]).length * 18));
+      typing.remove();
+      if (my !== run) { app.removeEventListener('click', onTap); return; }
+    } else if (!fast) await sleep(350);
+    thread.append(chatMsgEl(m));
+    thread.lastChild.scrollIntoView({ block: 'nearest', behavior: fast ? 'auto' : 'smooth' });
+  }
+  app.removeEventListener('click', onTap);
+  if (my !== run) return;
+  box.append(choicesEl(sc, c => {
+    if (c.say !== false && !c.primary) G.chat.push(['hero', tx(c.t)]);
+    else if (c.say === false) G.chat.push(['system', tx(c.t)]);
+    pick(c);
+  }));
+}
+
+async function renderHub(sc, box, animate) {
+  box.append(el('div', 'art', sc.art));
+  const left = sc.slots - G.visited.length;
+  box.append(el('div', 'slots', `${esc(S.ui.timeLeft)}<br><b>${'☀️'.repeat(left)}${'🌑'.repeat(G.visited.length)}</b>`));
+  sc.lines.forEach(l => box.append(lineEl(l)));
+  const grid = el('div', 'places');
+  for (const p of sc.places) {
+    const done = G.visited.includes(p.id);
+    const b = el('button', 'place-btn', `<span class="i">${p.icon}</span>${esc(p.t)}${done ? `<small>✓ ${esc(S.ui.visited)}</small>` : ''}`);
+    b.disabled = done;
+    b.onclick = () => { G.visited.push(p.id); goTo(p.go); };
+    grid.append(b);
+  }
+  box.append(grid);
+}
+
+async function renderEnding(sc, box, animate) {
+  const my = run;
+  const e = S.endings[sc.ending];
+  box.append(el('div', 'art', sc.art));
+  box.append(el('div', 'badge', `<div class="k">${esc(S.ui.endingUnlocked)} · ${found.length}/${Object.keys(S.endings).length}</div><h2>${e.icon} ${esc(e.title)}</h2>`));
+  const items = sc.lines.map(lineEl).filter(Boolean);
+  items.forEach(i => { i.classList.add('reveal'); box.append(i); });
+  await revealAll(box, items, animate);
+  if (my !== run) return;
+  const wrap = el('div', 'choices');
+  if (sc.secret && secretAll()) {
+    const s = el('button', 'btn primary', '🧺 ' + esc(S.ui.oneMore));
+    s.onclick = () => goTo('secret_1');
+    wrap.append(s);
+  }
+  const again = el('button', 'btn' + (wrap.children.length ? '' : ' primary'), esc(S.ui.playAgain));
+  again.onclick = () => { store.del(SAVE_KEY); G = null; renderWho(); };
+  const title = el('button', 'btn', esc(S.ui.backToTitle));
+  title.onclick = () => { store.del(SAVE_KEY); G = null; render(); };
+  wrap.append(again, title);
+  box.append(wrap);
+}
+
+// ---------- sheets ----------
+function sheet(build) {
+  const bg = el('div', 'sheet-bg');
+  const s = el('div', 'sheet');
+  bg.append(s);
+  build(s);
+  const close = el('button', 'btn', esc(S.ui.close));
+  close.style.width = '100%';
+  close.style.marginTop = '16px';
+  close.onclick = () => bg.remove();
+  s.append(close);
+  bg.onclick = e => { if (e.target === bg) bg.remove(); };
+  document.body.append(bg);
+}
+function showNotebook() {
+  sheet(s => {
+    s.append(el('h3', '', '📓 ' + esc(S.ui.notebook)));
+    if (!G.clues.length) s.append(el('p', 'fine', esc(S.ui.noClues)));
+    for (const id of G.clues) {
+      const c = S.clues[id];
+      s.append(el('div', 'clue', `<div class="i">${c.icon}</div><div><b>${esc(c.name)}</b><span>${esc(c.text)}</span></div>`));
+    }
+  });
+}
+function showEndings() {
+  sheet(s => {
+    s.append(el('h3', '', '🏆 ' + esc(S.ui.endings)));
+    const g = el('div', 'grid-ends');
+    for (const [id, e] of Object.entries(S.endings)) {
+      const got = found.includes(id);
+      g.append(el('div', 'end-card' + (got ? '' : ' locked'), `<span class="i">${got ? e.icon : '🔒'}</span>${got ? esc(e.title) : esc(S.ui.locked)}`));
+    }
+    s.append(g);
+    const r = el('button', 'linkish', esc(S.ui.resetProgress));
+    r.onclick = () => {
+      if (!confirm(S.ui.resetConfirm)) return;
+      store.del(SAVE_KEY); store.del(ENDS_KEY); found = []; G = null;
+      document.querySelector('.sheet-bg')?.remove(); render();
+    };
+    s.append(r);
+  });
+}
+function toast(msg) {
+  document.querySelector('.toast')?.remove();
+  const t = el('div', 'toast', esc(msg));
+  document.body.append(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+document.documentElement.lang = lang;
+G = null; // always open on the title screen; "Continue" resumes the save
+render();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
