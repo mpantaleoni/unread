@@ -1,6 +1,6 @@
 // Offline support: serve the app shell from cache, refresh it in the background.
-const CACHE = 'unread-v1';
-const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'story/en.js', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
+const CACHE = 'unread-v2';
+const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'story/en.js', 'story/it.js', 'story/de.js', 'story/fr.js', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
