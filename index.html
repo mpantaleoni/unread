@@ -236,10 +236,10 @@
 <body>
 <div id="app"></div>
 
-<script src="story/en.js?v=3"></script>
-<script src="story/it.js?v=3"></script>
-<script src="story/de.js?v=3"></script>
-<script src="story/fr.js?v=3"></script>
+<script src="story/en.js?v=4"></script>
+<script src="story/it.js?v=4"></script>
+<script src="story/de.js?v=4"></script>
+<script src="story/fr.js?v=4"></script>
 <script>
 const LANGS = [
   { id: 'en', label: 'English' },
@@ -338,15 +338,52 @@ const Sound = (() => {
   let ctx = null, master = null, on = store.get(SOUND_KEY, true);
   let current = null, mood = 'none';
   const noise = {};
+  // iOS treats Web Audio as "ambient" sound, which the silent switch mutes.
+  // Asking for the "playback" session (iOS 17+) makes it behave like music;
+  // on older iOS a looping silent <audio> element has the same effect.
+  let keepAlive = null;
+  function silentWavUrl() {
+    const n = 4000, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    w(36, 'data'); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  function mediaSession() {
+    try {
+      if (navigator.audioSession) { navigator.audioSession.type = 'playback'; return; }
+      if (!keepAlive) {
+        keepAlive = new Audio(silentWavUrl());
+        keepAlive.loop = true;
+        keepAlive.setAttribute('playsinline', '');
+      }
+      keepAlive.play().catch(() => {});
+    } catch {}
+  }
   function init() {
+    mediaSession();
     if (!ctx) {
       try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch { return; }
       master = ctx.createGain();
       master.gain.value = on ? 0.9 : 0;
       master.connect(ctx.destination);
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    // iOS only unlocks audio that actually starts inside the tap: play one silent sample now.
+    try {
+      const s = ctx.createBufferSource();
+      s.buffer = ctx.createBuffer(1, 1, 22050);
+      s.connect(ctx.destination);
+      s.start(0);
+    } catch {}
   }
+  // Unlock on any tap, and again after the app comes back from the background.
+  ['touchend', 'pointerup', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (on) init(); }, { passive: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { if (ctx && ctx.state === 'running') ctx.suspend().catch(() => {}); keepAlive?.pause(); }
+  });
   function buffer(type) {
     if (noise[type]) return noise[type];
     const len = ctx.sampleRate * 3, b = ctx.createBuffer(1, len, ctx.sampleRate), d = b.getChannelData(0);
@@ -412,6 +449,8 @@ const Sound = (() => {
     toggle() {
       on = !on; store.set(SOUND_KEY, on); init();
       if (master) master.gain.setTargetAtTime(on ? 0.9 : 0, ctx.currentTime, 0.1);
+      if (on) setTimeout(() => fx.pop(), 120); // audible confirmation
+      else keepAlive?.pause();
       return on;
     },
     play(name) { if (ctx && on && fx[name]) fx[name](); },

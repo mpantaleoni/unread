@@ -1,8 +1,8 @@
-// Offline support: serve the app shell from cache, refresh it in the background.
+// Offline support: always try the network first, fall back to the cached copy.
 // Bump CACHE (and the ?v= on the story scripts in index.html) whenever files change.
-const CACHE = 'unread-v3';
+const CACHE = 'unread-v4';
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest',
-  'story/en.js?v=3', 'story/it.js?v=3', 'story/de.js?v=3', 'story/fr.js?v=3',
+  'story/en.js?v=4', 'story/it.js?v=4', 'story/de.js?v=4', 'story/fr.js?v=4',
   'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -22,13 +22,13 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // Network first, so a new version shows up on the very next launch; cache when offline.
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fresh = fetch(e.request).then(res => {
-        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+    fetch(e.request)
+      .then(res => {
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
         return res;
-      }).catch(() => cached);
-      return cached || fresh;
-    })
+      })
+      .catch(() => caches.match(e.request).then(hit => hit || caches.match('index.html')))
   );
 });
