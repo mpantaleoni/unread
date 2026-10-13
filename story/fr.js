@@ -29,7 +29,18 @@ window.STORY.fr = {
     soon: "bientôt",
     tapToSkip: "Touche pour passer",
     clueAdded: "Nouvel indice : {clue}",
-    typing: "écrit…"
+    typing: "écrit…",
+    introDay: "mercredi",
+    introFrom: "Numéro inconnu",
+    introNow: "maintenant",
+    introOpen: "Touche pour ouvrir",
+    introMsgs: ["Tu es réveillée ?", "Il se passe quelque chose au bord du lac.", "Regarde par la fenêtre. Maintenant. 👀"],
+    introReply: "c'est qui ??",
+    introLast: "Tu le sauras d'ici samedi. 🧺",
+    introEarlier: "Trois jours plus tôt…",
+    introContinue: "Touche pour continuer",
+    skip: "Passer",
+    sound: "Son"
   },
 
   characters: {
@@ -186,6 +197,7 @@ window.STORY.fr = {
         "Les satellites avaient raison.",
         "Vers minuit, un coup de tonnerre fait trembler tout le chalet. La pluie martèle le toit. Puis : clic. Les lumières s'éteignent dans tout le camp.",
         "{hero} se redresse dans son lit. Quelque part dehors, une porte claque.",
+        "Son téléphone vibre sur l'oreiller. Numéro inconnu : « Regarde par la fenêtre. »",
         "{sis} dort toujours. Comment, mystère."
       ],
       choices: [

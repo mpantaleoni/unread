@@ -32,7 +32,18 @@ window.STORY.en = {
     soon: "coming soon",
     tapToSkip: "Tap to skip",
     clueAdded: "New clue: {clue}",
-    typing: "is typing…"
+    typing: "is typing…",
+    introDay: "Wednesday",
+    introFrom: "Unknown number",
+    introNow: "now",
+    introOpen: "Tap to open",
+    introMsgs: ["Are you awake?", "Something is happening down at the lake.", "Look out the window. Now. 👀"],
+    introReply: "who is this??",
+    introLast: "You'll find out by Saturday. 🧺",
+    introEarlier: "Three days earlier…",
+    introContinue: "Tap to continue",
+    skip: "Skip",
+    sound: "Sound"
   },
 
   characters: {
@@ -189,6 +200,7 @@ window.STORY.en = {
         "The satellites were right.",
         "Around midnight, thunder shakes the whole cabin. Rain hammers the roof. Then — click. The lights go out across the entire camp.",
         "{hero} sits up in her bunk. Somewhere outside, a door bangs.",
+        "Her phone buzzes on the pillow. Unknown number: “Look out the window.”",
         "{sis} is still asleep. Somehow."
       ],
       choices: [

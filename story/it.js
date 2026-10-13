@@ -29,7 +29,18 @@ window.STORY.it = {
     soon: "in arrivo",
     tapToSkip: "Tocca per saltare",
     clueAdded: "Nuovo indizio: {clue}",
-    typing: "sta scrivendo…"
+    typing: "sta scrivendo…",
+    introDay: "mercoledì",
+    introFrom: "Numero sconosciuto",
+    introNow: "ora",
+    introOpen: "Tocca per aprire",
+    introMsgs: ["Sei sveglia?", "Sta succedendo qualcosa giù al lago.", "Guarda fuori dalla finestra. Adesso. 👀"],
+    introReply: "chi sei??",
+    introLast: "Lo scoprirai entro sabato. 🧺",
+    introEarlier: "Tre giorni prima…",
+    introContinue: "Tocca per continuare",
+    skip: "Salta",
+    sound: "Audio"
   },
 
   characters: {
@@ -186,6 +197,7 @@ window.STORY.it = {
         "I satelliti avevano ragione.",
         "Verso mezzanotte un tuono fa tremare tutto il bungalow. La pioggia martella il tetto. Poi: clic. Le luci si spengono in tutto il campo.",
         "{hero} si mette seduta nel letto. Da qualche parte, fuori, sbatte una porta.",
+        "Il telefono vibra sul cuscino. Numero sconosciuto: “Guarda fuori dalla finestra.”",
         "{sis} dorme ancora. Chissà come."
       ],
       choices: [

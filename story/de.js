@@ -29,7 +29,18 @@ window.STORY.de = {
     soon: "bald verfügbar",
     tapToSkip: "Tippen zum Überspringen",
     clueAdded: "Neuer Hinweis: {clue}",
-    typing: "schreibt…"
+    typing: "schreibt…",
+    introDay: "Mittwoch",
+    introFrom: "Unbekannte Nummer",
+    introNow: "jetzt",
+    introOpen: "Tippen zum Öffnen",
+    introMsgs: ["Bist du wach?", "Unten am See passiert etwas.", "Schau aus dem Fenster. Jetzt. 👀"],
+    introReply: "wer ist das??",
+    introLast: "Das erfährst du bis Samstag. 🧺",
+    introEarlier: "Drei Tage vorher…",
+    introContinue: "Tippen zum Weitermachen",
+    skip: "Überspringen",
+    sound: "Ton"
   },
 
   characters: {
@@ -186,6 +197,7 @@ window.STORY.de = {
         "Die Satelliten hatten recht.",
         "Gegen Mitternacht lässt ein Donner die ganze Hütte beben. Regen trommelt aufs Dach. Dann: klick. Im ganzen Camp geht das Licht aus.",
         "{hero} setzt sich in ihrem Bett auf. Irgendwo draußen knallt eine Tür.",
+        "Ihr Handy vibriert auf dem Kissen. Unbekannte Nummer: „Schau aus dem Fenster.“",
         "{sis} schläft immer noch. Irgendwie."
       ],
       choices: [
